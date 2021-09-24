@@ -266,8 +266,13 @@ The ROS 1 bridge can connect topics from ROS 1 to ROS 2 and vice-versa. See the 
 
 Additional RMW implementations (optional)
 -----------------------------------------
+<<<<<<< HEAD
 The default middleware that ROS 2 uses is ``Fast-RTPS``, but the middleware (RMW) can be replaced at runtime.
 See the `guide <../Guides/Working-with-multiple-RMW-implementations>` on how to work with multiple RMWs.
+=======
+The default middleware that ROS 2 uses is ``Cyclone DDS``, but the middleware (RMW) can be replaced at runtime.
+See the `guide <../How-To-Guides/Working-with-multiple-RMW-implementations>` on how to work with multiple RMWs.
+>>>>>>> 9c5a8c9 (Change "Guides" to "How-to Guides" (#1972))
 
 
 Extra stuff for Debug mode

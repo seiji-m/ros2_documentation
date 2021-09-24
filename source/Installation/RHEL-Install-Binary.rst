@@ -1,15 +1,11 @@
-.. redirect-from::
-
-   Installation/Linux-Install-Binary
-
-Installing ROS 2 on Ubuntu Linux
-================================
+Installing ROS 2 on RHEL
+========================
 
 .. contents:: Table of Contents
    :depth: 2
    :local:
 
-This page explains how to install ROS 2 on Ubuntu Linux from a pre-built binary package.
+This page explains how to install ROS 2 on RHEL from a pre-built binary package.
 
 .. note::
 
@@ -17,29 +13,46 @@ This page explains how to install ROS 2 on Ubuntu Linux from a pre-built binary 
     All packages in the `ROS base variant <https://ros.org/reps/rep-2001.html#ros-base>`_ are included, and only a subset of packages in the `ROS desktop variant <https://ros.org/reps/rep-2001.html#desktop-variants>`_ are included.
     The exact list of packages are described by the repositories listed in `this ros2.repos file <https://github.com/ros2/ros2/blob/{REPOS_FILE_BRANCH}/ros2.repos>`_.
 
-There are also `Debian packages <Ubuntu-Install-Debians>` available.
+There are also `RPM packages <RHEL-Install-RPMs>` available.
 
 System Requirements
 -------------------
 
-We support Ubuntu Linux Focal Fossa (20.04) 64-bit x86 and 64-bit ARM.
+We currently support RHEL 8 64-bit.
+The Rolling Ridley distribution will change target platforms from time to time as new platforms are selected for development.
+Most people will want to use a stable ROS distribution.
 
-Add the ROS 2 apt repository
+Enable required repositories
 ----------------------------
 
-.. include:: _Apt-Repositories.rst
+The rosdep database contains packages from the EPEL and PowerTools repositories, which are not enabled by default.
+They can be enabled by running:
+
+.. code-block:: bash
+
+   sudo dnf install 'dnf-command(config-manager)' epel-release -y
+   sudo dnf config-manager --set-enabled powertools
+
+Installing prerequisites
+------------------------
+
+There are a few packages that must be installed in order to get and unpack the binary release.
+
+.. code-block:: bash
+
+   sudo dnf install tar bzip2 wget -y
 
 Downloading ROS 2
 -----------------
 
+Binary releases of Rolling Ridley are not provided.
+Instead you may download nightly `prerelease binaries <Prerelease_binaries>`.
 
-* Go `the releases page <https://github.com/ros2/ros2/releases>`_
-* Download the latest package for Ubuntu; let's assume that it ends up at ``~/Downloads/ros2-package-linux-x86_64.tar.bz2``.
+* Download the latest package for RHEL; let's assume that it ends up at ``~/Downloads/ros2-package-linux-x86_64.tar.bz2``.
 
   * Note: there may be more than one binary download option which might cause the file name to differ.
 
-*
-  Unpack it:
+* Unpack it:
 
   .. code-block:: bash
 
@@ -52,12 +65,11 @@ Installing and initializing rosdep
 
 .. code-block:: bash
 
-       sudo apt update
-       sudo apt install -y python3-rosdep
+       sudo dnf install -y python3-rosdep
        sudo rosdep init
        rosdep update
 
-.. _linux-install-binary-install-missing-dependencies:
+.. _rhel-install-binary-install-missing-dependencies:
 
 Installing the missing dependencies
 -----------------------------------
@@ -66,23 +78,12 @@ Set your rosdistro according to the release you downloaded.
 
 .. code-block:: bash
 
-       rosdep install --from-paths ~/ros2_{DISTRO}/ros2-linux/share --ignore-src --rosdistro {DISTRO} -y --skip-keys "console_bridge fastcdr fastrtps osrf_testing_tools_cpp poco_vendor rmw_connextdds rti-connext-dds-5.3.1 tinyxml_vendor tinyxml2_vendor urdfdom urdfdom_headers"
-
-#. *Optional*\ : if you want to use the ROS 1<->2 bridge, then you must also install ROS 1.
-   Follow the normal install instructions: https://wiki.ros.org/noetic/Installation/Ubuntu
-
-Installing the python3 libraries
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: bash
-
-   sudo apt install -y libpython3-dev python3-pip
-   pip3 install -U argcomplete
+       rosdep install --from-paths ~/ros2_{DISTRO}/ros2-linux/share --ignore-src --rosdistro {DISTRO} -y --skip-keys "cyclonedds fastcdr fastrtps rmw_connextdds rti-connext-dds-5.3.1 urdfdom_headers pydocstyle python3-mypy python3-babeltrace python3-lttng"
 
 Install additional DDS implementations (optional)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you would like to use another DDS or RTPS vendor besides the default, eProsima's Fast RTPS, you can find instructions `here <DDS-Implementations>`.
+If you would like to use another DDS or RTPS vendor besides the default, Eclipse Cyclone DDS, you can find instructions `here <DDS-Implementations>`.
 
 Environment setup
 -----------------
@@ -119,21 +120,12 @@ Hooray!
 
 Next steps after installing
 ---------------------------
-Continue with the `tutorials and demos </Tutorials>` to configure your environment, create your own workspace and packages, and learn ROS 2 core concepts.
-
-Using the ROS 1 bridge
-----------------------
-The ROS 1 bridge can connect topics from ROS 1 to ROS 2 and vice-versa. See the dedicated `documentation <https://github.com/ros2/ros1_bridge/blob/master/README.md>`__ on how to build and use the ROS 1 bridge.
+Continue with the `tutorials and demos <../Tutorials>` to configure your environment, create your own workspace and packages, and learn ROS 2 core concepts.
 
 Additional RMW implementations (optional)
 -----------------------------------------
-<<<<<<< HEAD
-The default middleware that ROS 2 uses is ``Fast-RTPS``, but the middleware (RMW) can be replaced at runtime.
-See the `guide <../Guides/Working-with-multiple-RMW-implementations>` on how to work with multiple RMWs.
-=======
 The default middleware that ROS 2 uses is ``Cyclone DDS``, but the middleware (RMW) can be replaced at runtime.
 See the `guide <../How-To-Guides/Working-with-multiple-RMW-implementations>` on how to work with multiple RMWs.
->>>>>>> 9c5a8c9 (Change "Guides" to "How-to Guides" (#1972))
 
 Troubleshooting
 ---------------

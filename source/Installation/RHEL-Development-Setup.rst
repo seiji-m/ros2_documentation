@@ -1,9 +1,7 @@
-.. redirect-from::
+.. _rhel-latest:
 
-   Installation/Linux-Development-Setup
-
-Building ROS 2 on Ubuntu Linux
-==============================
+Building ROS 2 on RHEL
+======================
 
 .. contents:: Table of Contents
    :depth: 2
@@ -12,17 +10,11 @@ Building ROS 2 on Ubuntu Linux
 
 System requirements
 -------------------
-The current Debian-based target platforms for {DISTRO_TITLE_FULL} are:
+The current target Red Hat platforms for {DISTRO_TITLE_FULL} are:
 
-- Tier 1: Ubuntu Linux - Focal Fossa (20.04) 64-bit
-- Tier 3: Debian Linux - Buster (10) 64-bit
+- Tier 2: RHEL 8 64-bit
 
-
-Other Linux platforms with varying support levels include:
-
-- Arch Linux, see `alternate instructions <https://wiki.archlinux.org/index.php/ROS#ROS_2>`__
-- Fedora Linux, see `alternate instructions <Fedora-Development-Setup>`
-- OpenEmbedded / webOS OSE, see `alternate instructions <https://github.com/ros/meta-ros/wiki/OpenEmbedded-Build-Instructions>`__
+As defined in `REP 2000 <https://www.ros.org/reps/rep-2000.html>`_
 
 System setup
 ------------
@@ -30,34 +22,39 @@ System setup
 Set locale
 ^^^^^^^^^^
 
-.. include:: _Ubuntu-Set-Locale.rst
+.. include:: _RHEL-Set-Locale.rst
 
-Add the ROS 2 apt repository
+Enable required repositories
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. include:: _Apt-Repositories.rst
+The rosdep database contains packages from the EPEL and PowerTools repositories, which are not enabled by default.
+They can be enabled by running:
+
+.. code-block:: bash
+
+   sudo dnf install 'dnf-command(config-manager)' epel-release -y
+   sudo dnf config-manager --set-enabled powertools
 
 Install development tools and ROS tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
-   sudo apt update && sudo apt install -y \
-     build-essential \
+   sudo dnf install -y \
      cmake \
+     gcc-c++ \
      git \
-     libbullet-dev \
+     make \
+     patch \
      python3-colcon-common-extensions \
-     python3-flake8 \
      python3-pip \
-     python3-pytest-cov \
      python3-rosdep \
      python3-setuptools \
      python3-vcstool \
      wget
-   # install some pip packages needed for testing
-   python3 -m pip install -U \
-     argcomplete \
+   # install some pip packages needed for testing and
+   # not available as RPMs
+   python3 -m pip install -U --user \
      flake8-blind-except \
      flake8-builtins \
      flake8-class-newline \
@@ -66,18 +63,14 @@ Install development tools and ROS tools
      flake8-docstrings \
      flake8-import-order \
      flake8-quotes \
+     mypy==0.761 \
+     pydocstyle \
      pytest-repeat \
      pytest-rerunfailures \
-     pytest
-   # install Fast-RTPS dependencies
-   sudo apt install --no-install-recommends -y \
-     libasio-dev \
-     libtinyxml2-dev
-   # install Cyclone DDS dependencies
-   sudo apt install --no-install-recommends -y \
-     libcunit1-dev
+     pytest \
+     setuptools
 
-.. _Foxy_linux-dev-get-ros2-code:
+.. _Rolling_rhel-dev-get-ros2-code:
 
 Get ROS 2 code
 --------------
@@ -91,7 +84,7 @@ Create a workspace and clone all repos:
    wget https://raw.githubusercontent.com/ros2/ros2/{REPOS_FILE_BRANCH}/ros2.repos
    vcs import src < ros2.repos
 
-.. _linux-development-setup-install-dependencies-using-rosdep:
+.. _rhel-development-setup-install-dependencies-using-rosdep:
 
 Install dependencies using rosdep
 ---------------------------------
@@ -100,12 +93,12 @@ Install dependencies using rosdep
 
    sudo rosdep init
    rosdep update
-   rosdep install --from-paths src --ignore-src --rosdistro {DISTRO} -y --skip-keys "console_bridge fastcdr fastrtps rti-connext-dds-5.3.1 urdfdom_headers"
+   rosdep install --from-paths src --ignore-src --rosdistro {DISTRO} -y --skip-keys "console_bridge fastcdr fastrtps rti-connext-dds-5.3.1 urdfdom_headers pydocstyle python3-mypy python3-babeltrace python3-lttng asio"
 
 Install additional DDS implementations (optional)
 -------------------------------------------------
 
-If you would like to use another DDS or RTPS vendor besides the default, eProsima's Fast RTPS, you can find instructions `here <DDS-Implementations>`.
+If you would like to use another DDS or RTPS vendor besides the default, Cyclone DDS, you can find instructions `here <DDS-Implementations>`.
 
 Build the code in the workspace
 -------------------------------
@@ -115,12 +108,12 @@ Also ensure that you do not have ``source /opt/ros/${ROS_DISTRO}/setup.bash`` in
 You can make sure that ROS 2 is not sourced with the command ``printenv | grep -i ROS``.
 The output should be empty.
 
-More info on working with a ROS workspace can be found in `this tutorial </Tutorials/Colcon-Tutorial>`.
+More info on working with a ROS workspace can be found in `this tutorial <../Tutorials/Colcon-Tutorial>`.
 
 .. code-block:: bash
 
    cd ~/ros2_{DISTRO}/
-   colcon build --symlink-install
+   colcon build --symlink-install --cmake-args -DTHIRDPARTY_Asio=ON --no-warn-unused-cli
 
 Note: if you are having trouble compiling all examples and this is preventing you from completing a successful build, you can use ``COLCON_IGNORE`` in the same manner as `CATKIN_IGNORE <https://github.com/ros-infrastructure/rep/blob/master/rep-0128.rst>`__ to ignore the subtree or remove the folder from the workspace.
 Take for instance: you would like to avoid installing the large OpenCV library.
@@ -138,7 +131,7 @@ Set up your environment by sourcing the following file.
 
    . ~/ros2_{DISTRO}/install/local_setup.bash
 
-.. _talker-listener:
+.. _rhel_talker-listener:
 
 Try some examples
 -----------------
@@ -163,7 +156,7 @@ Hooray!
 
 Next steps after installing
 ---------------------------
-Continue with the `tutorials and demos </Tutorials>` to configure your environment, create your own workspace and packages, and learn ROS 2 core concepts.
+Continue with the `tutorials and demos <../Tutorials>` to configure your environment, create your own workspace and packages, and learn ROS 2 core concepts.
 
 Using the ROS 1 bridge
 ----------------------
@@ -171,14 +164,8 @@ The ROS 1 bridge can connect topics from ROS 1 to ROS 2 and vice-versa. See the 
 
 Additional RMW implementations (optional)
 -----------------------------------------
-<<<<<<< HEAD
-The default middleware that ROS 2 uses is ``Fast-RTPS``, but the middleware (RMW) can be replaced at runtime.
-See the `guide <../Guides/Working-with-multiple-RMW-implementations>` on how to work with multiple RMWs.
-=======
 The default middleware that ROS 2 uses is ``Cyclone DDS``, but the middleware (RMW) can be replaced at runtime.
 See the `guide <../How-To-Guides/Working-with-multiple-RMW-implementations>` on how to work with multiple RMWs.
->>>>>>> 9c5a8c9 (Change "Guides" to "How-to Guides" (#1972))
-
 
 Alternate compilers
 -------------------
@@ -192,7 +179,7 @@ To configure CMake to detect and use Clang:
 
 .. code-block:: bash
 
-   sudo apt install clang
+   sudo dnf install clang
    export CC=clang
    export CXX=clang++
    colcon build --cmake-force-configure
